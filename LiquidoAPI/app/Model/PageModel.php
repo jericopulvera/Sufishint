@@ -4,125 +4,116 @@ namespace Model;
 
 use Helper\DB as DB;
 
-class PageModel extends DB{
-	
-	public static $data;
+class PageModel extends DB
+{
+    public static $data;
 
-	public function insertTrack($request){
-		$request = $request->getParsedBody();
-		$data = array();
-		$this->ins()->insert_with_date("track/vessel_id, date, location, created_at/{$request['vessel_id']}, {$request['date']}, {$request['location']}: NOW()");
-		$id = $this->ins()->lastInsertedId();
-		if($data = $this->ins()->select_fetch("track/*", "id={$id}")){
-			self::$data = json_encode($data);
-			return true;
-		}
-		else{
-			return false;
-		}
+    public function insertTrack($request)
+    {
+        $request = $request->getParsedBody();
+        $data = [];
+        $this->ins()->insert_with_date("track/vessel_id, date, location, created_at/{$request['vessel_id']}, {$request['date']}, {$request['location']}: NOW()");
+        $id = $this->ins()->lastInsertedId();
+        if ($data = $this->ins()->select_fetch('track/*', "id={$id}")) {
+            self::$data = json_encode($data);
 
-	}
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    public function getVesselsCount($place, $date)
+    {
+        $data = [];
 
-	public function getVesselsCount($place, $date){
+        if ($data = DB::ins()->select_rowCount('track/vessel_id', "date={$date}, location={$place}")) {
+            self::$data = json_encode($data);
 
-		$data = array();
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-		if($data = DB::ins()->select_rowCount("track/vessel_id", "date={$date}, location={$place}")) {
-			self::$data = json_encode($data);
-			return true;
-		} else {
-			return false;
-		}
+    public function getListId($place, $date)
+    {
+        $data = [];
 
-	}
+        $query = "SELECT license_code FROM vessels INNER JOIN track ON track.vessel_id = vessels.id WHERE track.location = '{$place}' AND track.date = '{$date}'";
 
-	public function getListId($place, $date){
+        if ($data = DB::ins()->query_query($query)) {
+            self::$data = json_encode($data);
 
-		$data = array();
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-		$query = "SELECT license_code FROM vessels INNER JOIN track ON track.vessel_id = vessels.id WHERE track.location = '{$place}' AND track.date = '{$date}'"; 
+    public function getOrigin($id, $date)
+    {
+        $data = [];
 
-		
+        if ($data = DB::ins()->select_fetch('track/location', "id=$id, date=$date")) {
+            self::$data = json_encode($data);
 
-		if($data = DB::ins()->query_query($query)) {
-			self::$data = json_encode($data);
-			return true;
-		} else {
-			return false;
-		}
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	}
+    public function getInfoVessels($licenseId)
+    {
+        $data = [];
 
-	public function getOrigin($id, $date){
+        if ($data = DB::ins()->innerJoin('vessels/license',
+                                        'email, company_name, officer, contact_number, created_at/license_code',
+                                        'license/id=vessels/license_id',
+                                         null,
+                                        'license.id=vessels.license_id')) {
+            self::$data = json_encode($data);
 
-		$data = array();
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-		if($data = DB::ins()->select_fetch("track/location", "id=$id, date=$date")) {
-			self::$data = json_encode($data);
-			return true;
-		} else {
-			return false;
-		}
+    public function insertUser($email, $password)
+    {
+        if (DB::ins()->insert("users/email, password/$email, $password")) {
+            return true;
+        } else {
+            return true;
+        }
+    }
 
-	}
+    public function userLoggedIn($email, $password)
+    {
+        if (DB::ins()->select_rowCount('users/email, password', "email=$email, password=$password")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	public function getInfoVessels($licenseId){
+    public function vesselLoggedIn($email, $password)
+    {
+        if (DB::ins()->select_rowCount('users/email, password', "email=$email, password=$password")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-		$data = array();
-
-		if($data = DB::ins()->innerJoin("vessels/license", 
-									    "email, company_name, officer, contact_number, created_at/license_code", 
-									    "license/id=vessels/license_id", 
-									     null,  
-									    "license.id=vessels.license_id")) {
-			self::$data = json_encode($data);
-			return true;
-		} else {
-			return false;
-		}
-
-	}
-
-	public function insertUser($email, $password){
-
-		if(DB::ins()->insert("users/email, password/$email, $password")){
-			return true;
-		} else {
-			return true;
-		}
-
-	}
-
-	public function userLoggedIn($email, $password){
-
-		if(DB::ins()->select_rowCount("users/email, password", "email=$email, password=$password")){
-			return true;
-		} else {
-			return false;
-		}
-
-	}
-
-	public function vesselLoggedIn($email, $password){
-
-		if(DB::ins()->select_rowCount("users/email, password", "email=$email, password=$password")){
-			return true;
-		} else {
-			return false;
-		}
-
-	}
-
-	public function insertVessel($license, $email, $company, $officer, $contact, $password){
-
-		if(DB::ins()->insert("vessels/license_code, email, company_name, officer, contact_number, password/$license, $email, $company, $officer, $contact, $password")){
-			return true;
-		} else {
-			return true;
-		}
-
-	}
-
-
+    public function insertVessel($license, $email, $company, $officer, $contact, $password)
+    {
+        if (DB::ins()->insert("vessels/license_code, email, company_name, officer, contact_number, password/$license, $email, $company, $officer, $contact, $password")) {
+            return true;
+        } else {
+            return true;
+        }
+    }
 }

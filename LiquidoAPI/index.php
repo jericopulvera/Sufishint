@@ -2,15 +2,12 @@
 
 require_once 'vendor/autoload.php';
 
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
-
-header ("Access-Control-Allow-Origin: *");
+header('Access-Control-Allow-Origin: *');
 
 $app = new \Slim\App([
     'settings' => [
-        'displayErrorDetails' => true
-    ]
+        'displayErrorDetails' => true,
+    ],
 ]);
 
 $app->get('/', "Controller\PageController:index");
@@ -32,7 +29,6 @@ $app->get('/login/vessel/{email}/{password}', "Controller\PageController:vesselL
 $app->get('/register/user/{email}/{password}', "Controller\PageController:insertUser");
 
 $app->get('/register/vessel/{license}/{email}/{company}/{officer}/{contact}/{password}', "Controller\PageController:insertVessel");
-
 
 $app->post('/tracks', "Controller\PageController:insertTrack");
 
